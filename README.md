@@ -33,11 +33,11 @@ pip install requirements.txt
 crontab download.cron
 ```
 ### Run Django Application server locally
-go into folder where mange.py is there of project and then run
+go into folder where mange.py file is there inside project and then run
 ```
 python manage.py runserver
 ```
-Your application is will start running at 127.0.0.0.1:8000/app
+Your application will start running at 127.0.0.0.1:8000/app
 :smiley:
 
 ### Technology Stack
