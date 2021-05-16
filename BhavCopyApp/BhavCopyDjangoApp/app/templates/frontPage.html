@@ -1,0 +1,147 @@
+{% extends 'index.html' %}
+
+{% block content  %}
+    
+    <div id="search-app" class="m-auto p-3 d-flex flex-column col-md-8">
+        
+        <form  @submit.prevent="performSearch()">
+
+        <div class="d-flex justify-content-center">
+            <input type="text" class="form-control" placeholder="Search Equity here" v-model="query"/>
+        
+            <button class="btn btn-primary" style="margin-left:10%">Search </button>
+            
+        </div>
+        </form>
+        <div class="row pt-5">
+        <div v-if="results.length" style="height: 100vh;
+        overflow-y: auto;
+        overflow-x: auto;
+        width: 100vw;
+        scroll-behavior: smooth;">
+            
+                <table class="table table-striped table-hover" style="height:100px;overflow: auto;">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Name</th>
+                            <th>Open</th>
+                            <th>High</th>
+                            <th>Low</th>
+                            <th>Close</th>    
+                        </tr>    
+                     </thead>
+                <tbody>
+
+                <tr v-for="scrip in results">
+                    <td>[[scrip.code]]</td>
+                    <td>[[scrip.name]]</td>
+                    <td>[[scrip.open]]</td>
+                    <td>[[scrip.high]]</td>
+                    <td>[[scrip.low]]</td>
+                    <td>[[scrip.close]]</td>
+                </tr>
+            </tbody>
+         </table>
+        </div>
+    </div>
+</div>
+
+    </div>
+{% endblock  %}
+
+{% block scripts  %}
+<script>
+    
+
+    // finalResult = []
+    var d = {}
+    const SearchApp = {
+     //el:'#search-app',
+        data(){
+            res=[]
+            return {
+                query:'',
+                results:[]
+            }
+            
+        },
+        delimiters: ['[[',']]'],
+        methods:{
+            performSearch() {    
+                var data = {
+                    query:this.query
+                }
+                fetch('/app/api/search/',{
+                    method: 'POST',
+                    headers:{
+                        'Content-Type':'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then((response)=>{
+                    // console.log(response)
+                    return response.json()
+                })
+                .then((result)=>{
+                    // console.log(result.result)
+                    this.results = result.result
+                    this.res = result.result
+                    d = result.result
+                })
+                .catch((error)=>{
+                    console.log('ERROR',error);
+                })
+            }        
+        },
+    };
+    Vue.createApp(SearchApp).mount('#search-app');
+
+    const exportCSV = ()=>{
+                
+                const csvData = getData();
+                console.log(csvData);
+                download(csvData)
+            }
+          const getData=()=>{
+               let data = d;
+               if (Object.keys(data).length===0){
+                 alert('Nothing to export ! please search something.')
+
+               }
+                
+                const csvRows=[]
+                // console.log("nkdnn",this.res)
+
+                //get  header rows
+                const headers = Object.keys(data[0])
+                csvRows.push(headers.join(','));
+                // console.log(csvRows)
+
+                // loop over rows
+                for(const row of data){
+                    const values  = headers.map(header=>{
+                        return `"${row[header]}"`;
+                    });
+                    csvRows.push(values.join(','))
+                }
+                
+                return csvRows.join('\n');
+                
+            }
+
+           const download=(data)=>{
+                const blob = new Blob([data], {type:'text/csv'});
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.setAttribute('hidden','')
+                a.setAttribute('href',url)
+                a.setAttribute('download','download.csv');
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+
+</script>
+{% endblock %}
